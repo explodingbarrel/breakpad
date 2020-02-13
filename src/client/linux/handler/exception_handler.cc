@@ -97,6 +97,10 @@
 #include "common/linux/eintr_wrapper.h"
 #include "third_party/lss/linux_syscall_support.h"
 
+/// Kabam
+#include "client/linux/kabam/minidump_data_filter.h"
+/// Kabam
+
 #if defined(__ANDROID__)
 #include "linux/sched.h"
 #endif
@@ -750,6 +754,27 @@ void ExceptionHandler::AddMappingInfo(const string& name,
   memcpy(mapping.second, identifier, sizeof(MDGUID));
   mapping_list_.push_back(mapping);
 }
+
+/// Kabam
+void ExceptionHandler::AddMinidumpLibrary(const char* name) {
+  
+  int len = strlen(name);
+  if(len > 0)
+  {
+    char* newString = (char*) malloc(len + 1);
+    strncpy(newString, name, len);
+    newString[len] = '\0';
+    
+    library_list_.push_back(newString);
+  }
+}
+
+void ExceptionHandler::SetMinidumpFilter(uint32_t filter)
+{
+  minidump_filter_flag_ = filter;
+}
+
+/// Kabam
 
 void ExceptionHandler::RegisterAppMemory(void* ptr, size_t length) {
   AppMemoryList::iterator iter =
