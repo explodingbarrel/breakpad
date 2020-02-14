@@ -231,9 +231,15 @@ class ExceptionHandler {
   // Report a crash signal from an SA_SIGINFO signal handler.
   bool HandleSignal(int sig, siginfo_t* info, void* uc);
   
+  
   /// Kabam
-    
-  void AddMinidumpLibrary(const char* name);
+  
+  // this function is not signal-safe  
+  void ExcludeLibraryInMinidump(const char* name);
+  
+  // this function is not signal-safe  
+  void IncludeLibraryInMinidump(const char* name);
+  
   void SetMinidumpFilter(uint32_t filter);
   
   /// Kabam
@@ -281,8 +287,12 @@ class ExceptionHandler {
   
   /// Kabam
   
-  // Used to determine which library to get information about.
-  std::list<char*> library_list_;
+  // Used to determine which libraries we should get information about.
+  // If no library is informed, minidump will include all libraries found.
+  std::list<char*> include_libraries_list_;
+  
+  // Used to determine which libraries we should NOT get information about.
+  std::list<char*> exclude_libraries_list_;
   
   // used to select the data to write into the minidump.
   uint32_t minidump_filter_flag_ = 0xFFFFFFFF;

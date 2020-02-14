@@ -138,7 +138,8 @@ class MinidumpWriter {
                  uintptr_t principal_mapping_address,
                  bool sanitize_stacks,
                  LinuxDumper* dumper,
-                  const std::list<char*>* library_list,
+                  const std::list<char*>* include_libraries_list,
+                  const std::list<char*>* exclude_libraries_list,
                   uint32_t minidump_data_filter_flags) 
                   : MinidumpWriter(minidump_path,
                       minidump_fd,
@@ -150,7 +151,8 @@ class MinidumpWriter {
                       sanitize_stacks,
                       dumper)
                  {
-                   library_list_ = library_list;
+                   include_libraries_list_ = include_libraries_list;
+                   exclude_libraries_list_ = exclude_libraries_list;
                    minidump_data_filter_flags_ = minidump_data_filter_flags;
                  }
   /// Kabam
@@ -180,7 +182,8 @@ class MinidumpWriter {
         principal_mapping_address_(principal_mapping_address),
         principal_mapping_(nullptr),
         sanitize_stacks_(sanitize_stacks),
-        library_list_(nullptr),
+        include_libraries_list_(nullptr),
+        exclude_libraries_list_(nullptr),
         minidump_data_filter_flags_(0xFFFFFFFF) {
     // Assert there should be either a valid fd or a valid path, not both.
     assert(fd_ != -1 || minidump_path);
@@ -254,6 +257,7 @@ class MinidumpWriter {
     return (minidump_data_filter_flags_ & flag) > 0;
   }
 /// Kabam
+
   bool Dump() {
     // A minidump file contains a number of tagged streams. This is the number
     // of stream which we write.
@@ -634,12 +638,12 @@ class MinidumpWriter {
 
   bool ShouldIncludeMappingWithLibraryName(const char* library_path) {
     
-    if(library_list_ == nullptr || library_list_->size() == 0) {
+    if(include_libraries_list_ == nullptr || include_libraries_list_->size() == 0) {
       return true;
     }
     
-    for (std::list<char*>::const_iterator iter = library_list_->begin();
-         iter != library_list_->end();
+    for (std::list<char*>::const_iterator iter = include_libraries_list_->begin();
+         iter != include_libraries_list_->end();
          ++iter) {
         
         if(my_strstr((char*)library_path, *iter) != NULL) { 
@@ -648,6 +652,24 @@ class MinidumpWriter {
     }
     return false;
   }
+  
+  bool ShouldExcludeMappingWithLibraryName(const char* library_path) {
+    
+    if(exclude_libraries_list_ == nullptr || exclude_libraries_list_->size() == 0) {
+      return false;
+    }
+    
+    for (std::list<char*>::const_iterator iter = exclude_libraries_list_->begin();
+         iter != exclude_libraries_list_->end();
+         ++iter) {
+        
+        if(my_strstr((char*)library_path, *iter) != NULL) { 
+          return true;
+        }
+    }
+    return false;
+  }
+  
 /// Kabam
 
   static bool ShouldIncludeMapping(const MappingInfo& mapping) {
@@ -689,7 +711,9 @@ class MinidumpWriter {
 
     for (unsigned i = 0; i < dumper_->mappings().size(); ++i) {
       const MappingInfo& mapping = *dumper_->mappings()[i];
-      if (ShouldIncludeMapping(mapping) && ShouldIncludeMappingWithLibraryName(mapping.name) && !HaveMappingInfo(mapping))
+      if (ShouldIncludeMapping(mapping) && 
+          ShouldIncludeMappingWithLibraryName(mapping.name) &&
+          !ShouldExcludeMappingWithLibraryName(mapping.name) && !HaveMappingInfo(mapping))
         num_output_mappings++;
     }
 
@@ -712,7 +736,9 @@ class MinidumpWriter {
     unsigned int j = 0;
     for (unsigned i = 0; i < num_mappings; ++i) {
       const MappingInfo& mapping = *dumper_->mappings()[i];
-      if (!(ShouldIncludeMapping(mapping) && ShouldIncludeMappingWithLibraryName(mapping.name)) || HaveMappingInfo(mapping))
+      if (!(ShouldIncludeMapping(mapping) && 
+            ShouldIncludeMappingWithLibraryName(mapping.name) &&
+            !ShouldExcludeMappingWithLibraryName(mapping.name)) || HaveMappingInfo(mapping))
         continue;
 
       MDRawModule mod;
@@ -1472,7 +1498,8 @@ class MinidumpWriter {
   bool sanitize_stacks_;
   
   /// Kabam
-  const std::list<char*>* library_list_;
+  const std::list<char*>* include_libraries_list_;
+  const std::list<char*>* exclude_libraries_list_;
   uint32_t minidump_data_filter_flags_;
   /// Kabam
 };
@@ -1517,7 +1544,8 @@ bool WriteMinidumpImpl(const char* minidump_path,
                        bool skip_stacks_if_mapping_unreferenced,
                        uintptr_t principal_mapping_address,
                        bool sanitize_stacks,
-                       const std::list<char*>* library_list,
+                       const std::list<char*>* include_libraries_list,
+                       const std::list<char*>* exclude_libraries_list,
                        uint32_t minidump_data_filter_flags) {
   LinuxPtraceDumper dumper(crashing_process);
   const ExceptionHandler::CrashContext* context = NULL;
@@ -1531,7 +1559,7 @@ bool WriteMinidumpImpl(const char* minidump_path,
   MinidumpWriter writer(minidump_path, minidump_fd, context, mappings,
                         appmem, skip_stacks_if_mapping_unreferenced,
                         principal_mapping_address, sanitize_stacks, &dumper,
-                        library_list, minidump_data_filter_flags);
+                        include_libraries_list, exclude_libraries_list, minidump_data_filter_flags);
   // Set desired limit for file size of minidump (-1 means no limit).
   writer.set_minidump_size_limit(minidump_size_limit);
   if (!writer.Init())
@@ -1645,6 +1673,52 @@ bool WriteMinidump(int minidump_fd, off_t minidump_size_limit,
                            principal_mapping_address,
                            sanitize_stacks);
 }
+
+/// Kabam
+bool WriteMinidump(const char* minidump_path, off_t minidump_size_limit,
+                   pid_t crashing_process,
+                   const void* blob, size_t blob_size,
+                   const MappingList& mappings,
+                   const AppMemoryList& appmem,
+                   bool skip_stacks_if_mapping_unreferenced,
+                   uintptr_t principal_mapping_address,
+                   bool sanitize_stacks,
+                    const std::list<char*>* include_libraries_list,
+                    const std::list<char*>* exclude_libraries_list,
+                    uint32_t minidump_data_filter_flags) {
+  return WriteMinidumpImpl(minidump_path, -1, minidump_size_limit,
+                           crashing_process, blob, blob_size,
+                           mappings, appmem,
+                           skip_stacks_if_mapping_unreferenced,
+                           principal_mapping_address,
+                           sanitize_stacks,
+                           include_libraries_list,
+                           exclude_libraries_list,
+                           minidump_data_filter_flags);
+}
+
+bool WriteMinidump(int minidump_fd, off_t minidump_size_limit,
+                   pid_t crashing_process,
+                   const void* blob, size_t blob_size,
+                   const MappingList& mappings,
+                   const AppMemoryList& appmem,
+                   bool skip_stacks_if_mapping_unreferenced,
+                   uintptr_t principal_mapping_address,
+                   bool sanitize_stacks,
+                    const std::list<char*>* include_libraries_list,
+                    const std::list<char*>* exclude_libraries_list,
+                    uint32_t minidump_data_filter_flags) {
+  return WriteMinidumpImpl(NULL, minidump_fd, minidump_size_limit,
+                           crashing_process, blob, blob_size,
+                           mappings, appmem,
+                           skip_stacks_if_mapping_unreferenced,
+                           principal_mapping_address,
+                           sanitize_stacks,
+                           include_libraries_list,
+                           exclude_libraries_list,
+                           minidump_data_filter_flags);
+}
+/// Kabam
 
 bool WriteMinidump(const char* filename,
                    const MappingList& mappings,

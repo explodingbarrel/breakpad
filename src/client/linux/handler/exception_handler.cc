@@ -630,7 +630,10 @@ bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
                                           app_memory_list_,
                                           may_skip_dump,
                                           principal_mapping_address,
-                                          sanitize_stacks);
+                                          sanitize_stacks,
+                                          &include_libraries_list_,
+                                          &exclude_libraries_list_,
+                                          minidump_filter_flag_);
   }
   return google_breakpad::WriteMinidump(minidump_descriptor_.path(),
                                         minidump_descriptor_.size_limit(),
@@ -641,7 +644,10 @@ bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
                                         app_memory_list_,
                                         may_skip_dump,
                                         principal_mapping_address,
-                                        sanitize_stacks);
+                                        sanitize_stacks,
+                                        &include_libraries_list_,
+                                        &exclude_libraries_list_,
+                                        minidump_filter_flag_);
 }
 
 // static
@@ -756,7 +762,7 @@ void ExceptionHandler::AddMappingInfo(const string& name,
 }
 
 /// Kabam
-void ExceptionHandler::AddMinidumpLibrary(const char* name) {
+void ExceptionHandler::IncludeLibraryInMinidump(const char* name) {
   
   int len = strlen(name);
   if(len > 0)
@@ -765,7 +771,20 @@ void ExceptionHandler::AddMinidumpLibrary(const char* name) {
     strncpy(newString, name, len);
     newString[len] = '\0';
     
-    library_list_.push_back(newString);
+    include_libraries_list_.push_back(newString);
+  }
+}
+
+void ExceptionHandler::ExcludeLibraryInMinidump(const char* name) {
+  
+  int len = strlen(name);
+  if(len > 0)
+  {
+    char* newString = (char*) malloc(len + 1);
+    strncpy(newString, name, len);
+    newString[len] = '\0';
+    
+    exclude_libraries_list_.push_back(newString);
   }
 }
 
