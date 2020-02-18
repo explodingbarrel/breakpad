@@ -97,6 +97,10 @@
 #include "common/linux/eintr_wrapper.h"
 #include "third_party/lss/linux_syscall_support.h"
 
+/// Kabam
+#include "client/linux/kabam/minidump_data_filter.h"
+/// Kabam
+
 #if defined(__ANDROID__)
 #include "linux/sched.h"
 #endif
@@ -626,7 +630,10 @@ bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
                                           app_memory_list_,
                                           may_skip_dump,
                                           principal_mapping_address,
-                                          sanitize_stacks);
+                                          sanitize_stacks,
+                                          &include_libraries_list_,
+                                          &exclude_libraries_list_,
+                                          minidump_filter_flag_);
   }
   return google_breakpad::WriteMinidump(minidump_descriptor_.path(),
                                         minidump_descriptor_.size_limit(),
@@ -637,7 +644,10 @@ bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
                                         app_memory_list_,
                                         may_skip_dump,
                                         principal_mapping_address,
-                                        sanitize_stacks);
+                                        sanitize_stacks,
+                                        &include_libraries_list_,
+                                        &exclude_libraries_list_,
+                                        minidump_filter_flag_);
 }
 
 // static
@@ -750,6 +760,40 @@ void ExceptionHandler::AddMappingInfo(const string& name,
   memcpy(mapping.second, identifier, sizeof(MDGUID));
   mapping_list_.push_back(mapping);
 }
+
+/// Kabam
+void ExceptionHandler::IncludeLibraryInMinidump(const char* name) {
+  
+  int len = strlen(name);
+  if(len > 0)
+  {
+    char* newString = (char*) malloc(len + 1);
+    strncpy(newString, name, len);
+    newString[len] = '\0';
+    
+    include_libraries_list_.push_back(newString);
+  }
+}
+
+void ExceptionHandler::ExcludeLibraryInMinidump(const char* name) {
+  
+  int len = strlen(name);
+  if(len > 0)
+  {
+    char* newString = (char*) malloc(len + 1);
+    strncpy(newString, name, len);
+    newString[len] = '\0';
+    
+    exclude_libraries_list_.push_back(newString);
+  }
+}
+
+void ExceptionHandler::SetMinidumpFilter(uint32_t filter)
+{
+  minidump_filter_flag_ = filter;
+}
+
+/// Kabam
 
 void ExceptionHandler::RegisterAppMemory(void* ptr, size_t length) {
   AppMemoryList::iterator iter =

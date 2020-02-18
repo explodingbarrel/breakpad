@@ -136,6 +136,34 @@ bool WriteMinidump(const char* filename,
                    const MappingList& mappings,
                    const AppMemoryList& appdata,
                    LinuxDumper* dumper);
+                   
+/// Kabam
+
+bool WriteMinidump(int minidump_fd, off_t minidump_size_limit,
+                   pid_t crashing_process,
+                   const void* blob, size_t blob_size,
+                   const MappingList& mappings,
+                   const AppMemoryList& appmem,
+                   bool skip_stacks_if_mapping_unreferenced,
+                   uintptr_t principal_mapping_address,
+                   bool sanitize_stacks,
+                    const std::list<char*>* include_libraries_list,
+                    const std::list<char*>* exclude_libraries_list,
+                    uint32_t minidump_data_filter_flags);  
+
+bool WriteMinidump(const char* minidump_path, off_t minidump_size_limit,
+                   pid_t crashing_process,
+                   const void* blob, size_t blob_size,
+                   const MappingList& mappings,
+                   const AppMemoryList& appmem,
+                   bool skip_stacks_if_mapping_unreferenced,
+                   uintptr_t principal_mapping_address,
+                   bool sanitize_stacks,
+                    const std::list<char*>* include_libraries_list,
+                    const std::list<char*>* exclude_libraries_list,
+                    uint32_t minidump_data_filter_flags);
+  
+/// Kabam
 
 }  // namespace google_breakpad
 

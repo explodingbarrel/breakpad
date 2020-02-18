@@ -37,6 +37,10 @@
 
 #include <string>
 
+/// Kabam
+#include <list>
+/// Kabam
+
 #include "client/linux/crash_generation/crash_generation_client.h"
 #include "client/linux/handler/minidump_descriptor.h"
 #include "client/linux/minidump_writer/minidump_writer.h"
@@ -226,6 +230,19 @@ class ExceptionHandler {
 
   // Report a crash signal from an SA_SIGINFO signal handler.
   bool HandleSignal(int sig, siginfo_t* info, void* uc);
+  
+  
+  /// Kabam
+  
+  // this function is not signal-safe  
+  void ExcludeLibraryInMinidump(const char* name);
+  
+  // this function is not signal-safe  
+  void IncludeLibraryInMinidump(const char* name);
+  
+  void SetMinidumpFilter(uint32_t filter);
+  
+  /// Kabam
 
  private:
   // Save the old signal handlers and install new ones.
@@ -267,6 +284,20 @@ class ExceptionHandler {
   // Callers can add extra info about mappings for cases where the
   // dumper code cannot extract enough information from /proc/<pid>/maps.
   MappingList mapping_list_;
+  
+  /// Kabam
+  
+  // Used to determine which libraries we should get information about.
+  // If no library is informed, minidump will include all libraries found.
+  std::list<char*> include_libraries_list_;
+  
+  // Used to determine which libraries we should NOT get information about.
+  std::list<char*> exclude_libraries_list_;
+  
+  // used to select the data to write into the minidump.
+  uint32_t minidump_filter_flag_ = 0xFFFFFFFF;
+  
+  /// Kabam
 
   // Callers can request additional memory regions to be included in
   // the dump.

@@ -82,6 +82,9 @@ src/Makefile
 # Ignore compiled Python files.
 *.pyc
 
+# Kabam: Removing ios build files
+src/client/ios/build
+
 # Ignore directories gclient syncs.
 src/testing
 src/third_party/lss
