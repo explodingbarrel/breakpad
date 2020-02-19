@@ -238,6 +238,8 @@ const uint8_t *CompilationUnit::SkipAttribute(const uint8_t *start,
     case DW_FORM_strp:
     case DW_FORM_sec_offset:
       return start + reader_->OffsetSize();
+    default:
+          ;
   }
   fprintf(stderr,"Unhandled form type");
   return NULL;
@@ -576,6 +578,8 @@ const uint8_t *CompilationUnit::ProcessAttribute(
                                reader_->ReadAddress(addr_ptr));
       return start + len;
     }
+      default:
+      ;
   }
   fprintf(stderr, "Unhandled form type\n");
   return NULL;

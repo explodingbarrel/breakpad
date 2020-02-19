@@ -84,6 +84,7 @@ src/Makefile
 
 # Kabam: Removing ios build files
 src/client/ios/build
+src/tools/mac/dump_syms/build
 
 # Ignore directories gclient syncs.
 src/testing
