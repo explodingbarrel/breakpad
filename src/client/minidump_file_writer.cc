@@ -44,6 +44,10 @@
 #include "third_party/lss/linux_syscall_support.h"
 #endif
 
+/// Kabam
+#include "client/buffered_file_writer.h"
+/// Kabam
+
 #if defined(__ANDROID__)
 #include <errno.h>
 
@@ -89,11 +93,23 @@ namespace google_breakpad {
 
 const MDRVA MinidumpFileWriter::kInvalidMDRVA = static_cast<MDRVA>(-1);
 
+
+MinidumpFileWriter::MinidumpFileWriter(BufferedFileWriter* writer)
+  : file_(-1),
+    close_file_when_destroyed_(true),
+    position_(0),
+    size_(0),
+    fileWriter_(writer)
+{
+  
+}
+
 MinidumpFileWriter::MinidumpFileWriter()
     : file_(-1),
       close_file_when_destroyed_(true),
       position_(0),
-      size_(0) {
+      size_(0),
+      fileWriter_(NULL) {
 }
 
 MinidumpFileWriter::~MinidumpFileWriter() {
@@ -124,6 +140,11 @@ void MinidumpFileWriter::SetFile(const int file) {
 bool MinidumpFileWriter::Close() {
   bool result = true;
 
+  if(fileWriter_ != NULL)
+  {
+    fileWriter_->Flush();
+  }
+
   if (file_ != -1) {
 #if defined(__ANDROID__)
     if (!NeedsFTruncateWorkAround() && ftruncate(file_, position_)) {
@@ -143,6 +164,14 @@ bool MinidumpFileWriter::Close() {
   }
 
   return result;
+}
+
+void MinidumpFileWriter::Flush()
+{
+  if(fileWriter_ != NULL)
+  {
+    fileWriter_->Flush();
+  }
 }
 
 bool MinidumpFileWriter::CopyStringToMDString(const wchar_t *str,
@@ -316,20 +345,29 @@ bool MinidumpFileWriter::Copy(MDRVA position, const void *src, ssize_t size) {
   if (static_cast<size_t>(size + position) > size_)
     return false;
 
+  if(fileWriter_ != NULL)
+  {
+    if(fileWriter_->Lseek(file_, position, SEEK_SET) == static_cast<off_t>(position))
+      if (fileWriter_->Write(file_, src, size) == size) {
+        return true;
+      }
+  } else
+  {
   // Seek and write the data
 #if defined(__linux__) && __linux__
-  if (sys_lseek(file_, position, SEEK_SET) == static_cast<off_t>(position)) {
-    if (sys_write(file_, src, size) == size) {
-      return true;
+    if (sys_lseek(file_, position, SEEK_SET) == static_cast<off_t>(position)) {
+      if (sys_write(file_, src, size) == size) {
+        return true;
+      }
     }
-  }
 #else
-  if (lseek(file_, position, SEEK_SET) == static_cast<off_t>(position)) {
-    if (write(file_, src, size) == size) {
-      return true;
+    if (lseek(file_, position, SEEK_SET) == static_cast<off_t>(position)) {
+      if (write(file_, src, size) == size) {
+        return true;
+      }
     }
-  }
 #endif
+  }
   return false;
 }
 

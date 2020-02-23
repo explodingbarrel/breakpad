@@ -81,6 +81,7 @@
 
 /// Kabam
 #include "client/linux/kabam/minidump_data_filter.h"
+#include "client/buffered_file_writer.h"
 /// Kabam
 
 namespace {
@@ -138,6 +139,7 @@ class MinidumpWriter {
                  uintptr_t principal_mapping_address,
                  bool sanitize_stacks,
                  LinuxDumper* dumper,
+                 google_breakpad::BufferedFileWriter* fileWriter,
                   const std::list<char*>* include_libraries_list,
                   const std::list<char*>* exclude_libraries_list,
                   uint32_t minidump_data_filter_flags) 
@@ -154,6 +156,8 @@ class MinidumpWriter {
                    include_libraries_list_ = include_libraries_list;
                    exclude_libraries_list_ = exclude_libraries_list;
                    minidump_data_filter_flags_ = minidump_data_filter_flags;
+            
+                   minidump_writer_ = MinidumpFileWriter(fileWriter);
                  }
   /// Kabam
 
@@ -217,6 +221,8 @@ class MinidumpWriter {
     // Callers might still need to use it.
     if (fd_ == -1)
       minidump_writer_.Close();
+    else
+      minidump_writer_.Flush();
     dumper_->ThreadsResume();
   }
 
@@ -1544,6 +1550,7 @@ bool WriteMinidumpImpl(const char* minidump_path,
                        bool skip_stacks_if_mapping_unreferenced,
                        uintptr_t principal_mapping_address,
                        bool sanitize_stacks,
+                       google_breakpad::BufferedFileWriter* fileWriter,
                        const std::list<char*>* include_libraries_list,
                        const std::list<char*>* exclude_libraries_list,
                        uint32_t minidump_data_filter_flags) {
@@ -1559,7 +1566,7 @@ bool WriteMinidumpImpl(const char* minidump_path,
   MinidumpWriter writer(minidump_path, minidump_fd, context, mappings,
                         appmem, skip_stacks_if_mapping_unreferenced,
                         principal_mapping_address, sanitize_stacks, &dumper,
-                        include_libraries_list, exclude_libraries_list, minidump_data_filter_flags);
+                        fileWriter, include_libraries_list, exclude_libraries_list, minidump_data_filter_flags);
   // Set desired limit for file size of minidump (-1 means no limit).
   writer.set_minidump_size_limit(minidump_size_limit);
   if (!writer.Init())
@@ -1683,6 +1690,7 @@ bool WriteMinidump(const char* minidump_path, off_t minidump_size_limit,
                    bool skip_stacks_if_mapping_unreferenced,
                    uintptr_t principal_mapping_address,
                    bool sanitize_stacks,
+                   google_breakpad::BufferedFileWriter* fileWriter,
                     const std::list<char*>* include_libraries_list,
                     const std::list<char*>* exclude_libraries_list,
                     uint32_t minidump_data_filter_flags) {
@@ -1692,6 +1700,7 @@ bool WriteMinidump(const char* minidump_path, off_t minidump_size_limit,
                            skip_stacks_if_mapping_unreferenced,
                            principal_mapping_address,
                            sanitize_stacks,
+                           fileWriter,
                            include_libraries_list,
                            exclude_libraries_list,
                            minidump_data_filter_flags);
@@ -1705,6 +1714,7 @@ bool WriteMinidump(int minidump_fd, off_t minidump_size_limit,
                    bool skip_stacks_if_mapping_unreferenced,
                    uintptr_t principal_mapping_address,
                    bool sanitize_stacks,
+                   google_breakpad::BufferedFileWriter* fileWriter,
                     const std::list<char*>* include_libraries_list,
                     const std::list<char*>* exclude_libraries_list,
                     uint32_t minidump_data_filter_flags) {
@@ -1714,6 +1724,7 @@ bool WriteMinidump(int minidump_fd, off_t minidump_size_limit,
                            skip_stacks_if_mapping_unreferenced,
                            principal_mapping_address,
                            sanitize_stacks,
+                           fileWriter,
                            include_libraries_list,
                            exclude_libraries_list,
                            minidump_data_filter_flags);

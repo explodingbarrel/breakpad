@@ -99,6 +99,7 @@
 
 /// Kabam
 #include "client/linux/kabam/minidump_data_filter.h"
+#include "client/buffered_file_writer.h"
 /// Kabam
 
 #if defined(__ANDROID__)
@@ -230,7 +231,8 @@ ExceptionHandler::ExceptionHandler(const MinidumpDescriptor& descriptor,
       callback_(callback),
       callback_context_(callback_context),
       minidump_descriptor_(descriptor),
-      crash_handler_(NULL) {
+      crash_handler_(NULL),
+      fileWriter_(NULL) {
   if (server_fd >= 0)
     crash_generation_client_.reset(CrashGenerationClient::TryCreate(server_fd));
 
@@ -259,6 +261,23 @@ ExceptionHandler::ExceptionHandler(const MinidumpDescriptor& descriptor,
   pthread_mutex_unlock(&g_handler_stack_mutex_);
 }
 
+/// Kabam
+ExceptionHandler::ExceptionHandler(const MinidumpDescriptor& descriptor,
+                 FilterCallback filter,
+                 MinidumpCallback callback,
+                 void* callback_context,
+                 bool install_handler,
+                 const int server_fd,
+                 const size_t fileWriterBufferSize)
+                 : ExceptionHandler(descriptor, filter, callback, callback_context, install_handler, server_fd)
+ {
+   if(fileWriterBufferSize > 0)
+   {
+     fileWriter_ = new BufferedFileWriter(fileWriterBufferSize);
+   }
+ }
+/// Kabam
+
 // Runs before crashing: normal context.
 ExceptionHandler::~ExceptionHandler() {
   pthread_mutex_lock(&g_handler_stack_mutex_);
@@ -270,6 +289,11 @@ ExceptionHandler::~ExceptionHandler() {
     g_handler_stack_ = NULL;
     RestoreAlternateStackLocked();
     RestoreHandlersLocked();
+  }
+  if(fileWriter_ != NULL)
+  {
+    delete(fileWriter_);
+    fileWriter_ = NULL;
   }
   pthread_mutex_unlock(&g_handler_stack_mutex_);
 }
@@ -631,6 +655,7 @@ bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
                                           may_skip_dump,
                                           principal_mapping_address,
                                           sanitize_stacks,
+                                          fileWriter_,
                                           &include_libraries_list_,
                                           &exclude_libraries_list_,
                                           minidump_filter_flag_);
@@ -645,6 +670,7 @@ bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
                                         may_skip_dump,
                                         principal_mapping_address,
                                         sanitize_stacks,
+                                        fileWriter_,
                                         &include_libraries_list_,
                                         &exclude_libraries_list_,
                                         minidump_filter_flag_);

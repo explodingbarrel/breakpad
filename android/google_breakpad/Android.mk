@@ -70,6 +70,7 @@ LOCAL_ARM_MODE := arm
 
 # List of client source files, directly taken from Makefile.am
 LOCAL_SRC_FILES := \
+		src/client/buffered_file_writer.cc \
     src/client/linux/crash_generation/crash_generation_client.cc \
     src/client/linux/dump_writer_common/thread_info.cc \
     src/client/linux/dump_writer_common/ucontext_reader.cc \

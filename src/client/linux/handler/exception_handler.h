@@ -242,6 +242,14 @@ class ExceptionHandler {
   
   void SetMinidumpFilter(uint32_t filter);
   
+  ExceptionHandler(const MinidumpDescriptor& descriptor,
+                   FilterCallback filter,
+                   MinidumpCallback callback,
+                   void* callback_context,
+                   bool install_handler,
+                   const int server_fd,
+                   const size_t fileWriterBufferSize);
+  
   /// Kabam
 
  private:
@@ -296,6 +304,8 @@ class ExceptionHandler {
   
   // used to select the data to write into the minidump.
   uint32_t minidump_filter_flag_ = 0xFFFFFFFF;
+  
+  BufferedFileWriter* fileWriter_;
   
   /// Kabam
 

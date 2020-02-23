@@ -40,6 +40,10 @@
 
 namespace google_breakpad {
 
+/// Kabam
+class BufferedFileWriter;
+/// Kabam
+
 class UntypedMDRVA;
 template<typename MDType> class TypedMDRVA;
 
@@ -73,6 +77,10 @@ public:
 
   MinidumpFileWriter();
   ~MinidumpFileWriter();
+  
+  /// Kabam
+  MinidumpFileWriter(BufferedFileWriter* writer);
+  /// Kabam
 
   // Open |path| as the destination of the minidump data. If |path| already
   // exists, then Open() will fail.
@@ -115,6 +123,10 @@ public:
 
   // Return the current position for writing to the minidump
   inline MDRVA position() const { return position_; }
+  
+/// Kabam
+  void Flush();
+/// Kabam
 
  private:
   friend class UntypedMDRVA;
@@ -150,6 +162,10 @@ public:
   template <typename CharType>
   bool WriteStringCore(const CharType *str, unsigned int length,
                        MDLocationDescriptor *location);
+                       
+/// Kabam
+  BufferedFileWriter* fileWriter_;
+/// Kabam
 };
 
 // Represents an untyped allocated chunk
