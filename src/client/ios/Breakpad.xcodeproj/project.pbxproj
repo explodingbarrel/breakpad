@@ -54,6 +54,8 @@
 		16C92FAE150DF8330053D7BA /* BreakpadController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 16C92FAC150DF8330053D7BA /* BreakpadController.mm */; };
 		1EEEB60F1720821900F7E689 /* simple_string_dictionary.cc in Sources */ = {isa = PBXBuildFile; fileRef = 1EEEB60C1720821900F7E689 /* simple_string_dictionary.cc */; };
 		1EEEB6101720821900F7E689 /* simple_string_dictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = 1EEEB60D1720821900F7E689 /* simple_string_dictionary.h */; };
+		4C8C1CB5240779FB00070043 /* buffered_file_writer.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4C8C1CB3240779FB00070043 /* buffered_file_writer.cc */; };
+		4C8C1CB6240779FB00070043 /* buffered_file_writer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C8C1CB4240779FB00070043 /* buffered_file_writer.h */; };
 		4C9E7AA323FCB73A00EA9E4B /* convert_UTF.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4C9E7AA223FCB73A00EA9E4B /* convert_UTF.cc */; };
 		AA747D9F0F9514B9006C5449 /* Breakpad_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* Breakpad_Prefix.pch */; };
 		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
@@ -110,6 +112,8 @@
 		16C92FAC150DF8330053D7BA /* BreakpadController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BreakpadController.mm; sourceTree = "<group>"; };
 		1EEEB60C1720821900F7E689 /* simple_string_dictionary.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = simple_string_dictionary.cc; sourceTree = "<group>"; };
 		1EEEB60D1720821900F7E689 /* simple_string_dictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simple_string_dictionary.h; sourceTree = "<group>"; };
+		4C8C1CB3240779FB00070043 /* buffered_file_writer.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = buffered_file_writer.cc; sourceTree = "<group>"; };
+		4C8C1CB4240779FB00070043 /* buffered_file_writer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffered_file_writer.h; sourceTree = "<group>"; };
 		4C9E7AA223FCB73A00EA9E4B /* convert_UTF.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = convert_UTF.cc; sourceTree = "<group>"; };
 		AA747D9E0F9514B9006C5449 /* Breakpad_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Breakpad_Prefix.pch; sourceTree = SOURCE_ROOT; };
 		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -178,6 +182,8 @@
 		16C7C965147D4A4200776EAD /* client */ = {
 			isa = PBXGroup;
 			children = (
+				4C8C1CB3240779FB00070043 /* buffered_file_writer.cc */,
+				4C8C1CB4240779FB00070043 /* buffered_file_writer.h */,
 				16C7C966147D4A4200776EAD /* apple */,
 				16C7C969147D4A4200776EAD /* ios */,
 				16C7C99E147D4A4200776EAD /* mac */,
@@ -336,6 +342,7 @@
 				16C7CE41147D4A4300776EAD /* convert_UTF.h in Headers */,
 				16C7CE78147D4A4300776EAD /* GTMLogger.h in Headers */,
 				16C7CE7A147D4A4300776EAD /* HTTPMultipartUpload.h in Headers */,
+				4C8C1CB6240779FB00070043 /* buffered_file_writer.h in Headers */,
 				16C7CE84147D4A4300776EAD /* file_id.h in Headers */,
 				16C7CE86147D4A4300776EAD /* macho_id.h in Headers */,
 				16C7CE8B147D4A4300776EAD /* macho_utilities.h in Headers */,
@@ -416,6 +423,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				16C7CCCD147D4A4300776EAD /* Breakpad.mm in Sources */,
+				4C8C1CB5240779FB00070043 /* buffered_file_writer.cc in Sources */,
 				4C9E7AA323FCB73A00EA9E4B /* convert_UTF.cc in Sources */,
 				16C7CDE9147D4A4300776EAD /* ConfigFile.mm in Sources */,
 				16C7CDF5147D4A4300776EAD /* breakpad_nlist_64.cc in Sources */,
