@@ -53,7 +53,7 @@ namespace google_breakpad {
 			
 			// remaining byte amount in buffer from currentSeek_!
 			// big difference from farthestBufferWrite_!!!!
-			size_t remainingSize = length_ - seekInBuffer;
+			size_t remainingSize = static_cast<size_t>(length_ - seekInBuffer);
 			
 			assert(farthestBufferWrite_ >= 0);
 			
@@ -81,7 +81,7 @@ namespace google_breakpad {
 			{
 				memcpy((void*)(((const char*)buffer_) + seekInBuffer), curBuf, count);
 				currentSeek_ += count;
-				if(seekInBuffer + count > farthestBufferWrite_)
+				if(seekInBuffer + count > static_cast<size_t>(farthestBufferWrite_))
 				{
 					farthestBufferWrite_ = seekInBuffer + count;
 				}
@@ -108,7 +108,7 @@ namespace google_breakpad {
 		  }
 		#else
 		  if (::lseek(fd, offset, SEEK_SET) == static_cast<off_t>(offset)) {
-		    if (::write(fd, buffer_, amount) == amount) {
+		    if (::write(fd, buffer_, amount) == static_cast<ssize_t>(amount)) {
 		      return true;
 		    }
 		  }
@@ -130,7 +130,7 @@ namespace google_breakpad {
 				
 		if(offset < bufferSeekStart_ || offset > currentSeek_)
 		{
-			if(currentSeek_ > bufferSeekStart_ && !WriteBufferToFile(latestFd_, bufferSeekStart_, farthestBufferWrite_))
+			if(currentSeek_ > bufferSeekStart_ && !WriteBufferToFile(latestFd_, bufferSeekStart_, static_cast<size_t>(farthestBufferWrite_)))
 			{
 				return -1;
 			}
@@ -146,7 +146,7 @@ namespace google_breakpad {
 	bool BufferedFileWriter::Flush()
 	{
 		debug_print("BufferedFileWriter::flush() - bufferSeekStart_ = %lld | farthestBufferWrite_ = %lld\n", bufferSeekStart_, farthestBufferWrite_);
-		if(!WriteBufferToFile(latestFd_, bufferSeekStart_, farthestBufferWrite_))
+		if(!WriteBufferToFile(latestFd_, bufferSeekStart_, static_cast<size_t>(farthestBufferWrite_)))
 		{
 			return false;
 		}
