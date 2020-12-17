@@ -109,13 +109,24 @@ class ExceptionHandler {
   ExceptionHandler(const string &dump_path,
                    FilterCallback filter, MinidumpCallback callback,
                    void *callback_context, bool install_handler,
-		   const char *port_name);
+                   const char *port_name);
 
   // A special constructor if we want to bypass minidump writing and
   // simply get a callback with the exception information.
   ExceptionHandler(DirectCallback callback,
                    void *callback_context,
                    bool install_handler);
+    
+    
+    /// Kabam
+    ExceptionHandler(const string &dump_path,
+                   FilterCallback filter,
+                   MinidumpCallback callback,
+                   void* callback_context,
+                   bool install_handler,
+                   const char* port_name,
+                   bool exit_on_crash);
+    ///Kabam
 
   ~ExceptionHandler();
 
@@ -255,6 +266,9 @@ class ExceptionHandler {
   // True, if we're in the process of uninstalling the exception handler and
   // the thread.
   bool is_in_teardown_;
+  
+  //Kabam: Should call exit(...) after writing the minidump and calling the callback.
+  bool exit_on_crash_;
 
   // Save the last result of the last minidump
   bool last_minidump_write_result_;

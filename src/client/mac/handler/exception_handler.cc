@@ -220,12 +220,41 @@ kern_return_t catch_exception_raise(mach_port_t port, mach_port_t failed_thread,
 }
 #endif
 
+/// Kabam
 ExceptionHandler::ExceptionHandler(const string &dump_path,
                                    FilterCallback filter,
                                    MinidumpCallback callback,
                                    void* callback_context,
                                    bool install_handler,
                                    const char* port_name)
+        : dump_path_(),
+        filter_(filter),
+        callback_(callback),
+        callback_context_(callback_context),
+        directCallback_(NULL),
+        handler_thread_(NULL),
+        handler_port_(MACH_PORT_NULL),
+        previous_(NULL),
+        installed_exception_handler_(false),
+        is_in_teardown_(false),
+#if TARGET_OS_IPHONE
+        exit_on_crash_(false),
+#else
+        exit_on_crash_(true),
+#endif
+        last_minidump_write_result_(false),
+        use_minidump_write_mutex_(false) {
+    
+}
+/// Kabam
+
+ExceptionHandler::ExceptionHandler(const string &dump_path,
+                                   FilterCallback filter,
+                                   MinidumpCallback callback,
+                                   void* callback_context,
+                                   bool install_handler,
+                                   const char* port_name,
+                                   bool exit_on_crash)
     : dump_path_(),
       filter_(filter),
       callback_(callback),
@@ -236,6 +265,7 @@ ExceptionHandler::ExceptionHandler(const string &dump_path,
       previous_(NULL),
       installed_exception_handler_(false),
       is_in_teardown_(false),
+      exit_on_crash_(exit_on_crash),
       last_minidump_write_result_(false),
       use_minidump_write_mutex_(false) {
   // This will update to the ID and C-string pointers
@@ -263,6 +293,11 @@ ExceptionHandler::ExceptionHandler(DirectCallback callback,
       previous_(NULL),
       installed_exception_handler_(false),
       is_in_teardown_(false),
+#if TARGET_OS_IPHONE
+      exit_on_crash_(false),
+#else
+      exit_on_crash_(true),
+#endif
       last_minidump_write_result_(false),
       use_minidump_write_mutex_(false) {
   MinidumpGenerator::GatherSystemInformation();
@@ -356,10 +391,11 @@ bool ExceptionHandler::WriteMinidumpWithException(
     bool report_current_thread) {
   bool result = false;
 
-#if TARGET_OS_IPHONE
+// Kabam: we might exit on iOS if we set exit_on_crash_ = true;
+//#if TARGET_OS_IPHONE
   // _exit() should never be called on iOS.
-  exit_after_write = false;
-#endif
+  exit_after_write = exit_after_write && exit_on_crash_;
+//#endif
 
   if (directCallback_) {
     if (directCallback_(callback_context_,
